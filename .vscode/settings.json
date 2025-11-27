@@ -1,0 +1,4 @@
+{
+    "editor.lineHeight": 30, // 设置行高，单位是像素
+    "editor.letterSpacing": 0.5 // 设置字间距，单位是像素
+}
