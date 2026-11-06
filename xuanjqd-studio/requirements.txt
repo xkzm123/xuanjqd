@@ -1,0 +1,16 @@
+# 核心
+qrcode>=7.4
+segno>=1.5
+pillow>=9.0
+rich>=13.0
+typer>=0.9
+
+# 本地可视化设计器（可选）
+fastapi>=0.110
+uvicorn>=0.27
+
+# 扫码自检（可选，装了就自动启用）
+zxing-cpp>=2.2
+
+# 开发/测试
+pytest>=7.0

@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xuanjqd"
+version = "2.0.0"
+description = "宣讲会签到码工坊 · 批量生成、可视化设计、A4 拼版与扫码自检"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "xkzm123", url = "https://github.com/xkzm123" }]
+keywords = ["qrcode", "signin", "campus", "recruitment", "hdu", "checkin", "poster"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Topic :: Multimedia :: Graphics",
+]
+dependencies = [
+  "qrcode>=7.4",
+  "segno>=1.5",
+  "pillow>=9.0",
+  "rich>=13.0",
+  "typer>=0.9",
+]
+
+[project.optional-dependencies]
+web = ["fastapi>=0.110", "uvicorn>=0.27"]
+verify = ["zxing-cpp>=2.2"]
+dev = ["pytest>=7.0", "httpx>=0.27"]
+
+[project.scripts]
+xuanjqd = "xuanjqd.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/xkzm123/xuanjqd"
+Issues = "https://github.com/xkzm123/xuanjqd/issues"
+
+[tool.setuptools.packages.find]
+include = ["xuanjqd*"]
+
+[tool.setuptools.package-data]
+xuanjqd = ["web/static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
