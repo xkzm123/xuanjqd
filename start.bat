@@ -43,8 +43,8 @@ if not exist ".venv\Scripts\python.exe" (
   echo   [1/3] 虚拟环境已就绪
 )
 
-echo   [2/3] 启动设计器...
-echo   [3/3] 浏览器会自动打开 http://127.0.0.1:8848
+echo   [2/3] 启动界面...
+echo   [3/3] 浏览器会自动打开，地址见下方（端口被占用会自动换）
 echo.
 echo   关闭这个窗口即可停止服务。
 echo.

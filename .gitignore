@@ -11,7 +11,11 @@ venv/
 out/
 dist-out/
 pytest-of-*/
+.xuanjqd-browser/
+data/
 _shot_*.png
 *.zip
 .DS_Store
 Thumbs.db
+xuanjqd-browser/
+xuanjqd_probe/

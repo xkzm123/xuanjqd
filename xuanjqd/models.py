@@ -24,6 +24,7 @@ CSV_FIELDS = [
     "url",
     "tags",
     "note",
+    "status",
 ]
 
 _DT_FORMATS = [
@@ -69,6 +70,7 @@ class Talk:
     tags: tuple[str, ...] = ()
     note: str = ""
     source: str = "range"
+    status: str = ""
 
     # ---------- 派生字段 ----------
     @property
@@ -114,6 +116,7 @@ class Talk:
             "url": self.url,
             "tags": "|".join(self.tags),
             "note": self.note,
+            "status": self.status,
         }
 
     @classmethod
@@ -139,6 +142,25 @@ class Talk:
             tags=tags,
             note=str(row.get("note") or "").strip(),
             source="csv",
+            status=str(row.get("status") or "").strip(),
+        )
+
+    @classmethod
+    def from_json(cls, d: dict[str, Any]) -> "Talk":
+        start = parse_dt(d.get("start_at"))
+        end = parse_dt(d.get("end_at"))
+        return cls(
+            id=int(d.get("id") or 0),
+            company=str(d.get("company") or ""),
+            title=str(d.get("title") or "校园宣讲会"),
+            start_at=start,
+            end_at=end,
+            location=str(d.get("location") or ""),
+            url=str(d.get("url") or ""),
+            tags=tuple(d.get("tags") or ()),
+            note=str(d.get("note") or ""),
+            source=str(d.get("source") or "cache"),
+            status=str(d.get("status") or ""),
         )
 
     def to_json(self) -> dict[str, Any]:

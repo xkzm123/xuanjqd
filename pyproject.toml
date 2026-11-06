@@ -5,12 +5,12 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "xuanjqd"
 version = "2.0.0"
-description = "宣讲会签到码工坊 · 批量生成、可视化设计、A4 拼版与扫码自检"
+description = "抓取杭电就业网宣讲会，按天挑选并生成可打印的签到码"
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
 authors = [{ name = "xkzm123", url = "https://github.com/xkzm123" }]
-keywords = ["qrcode", "signin", "campus", "recruitment", "hdu", "checkin", "poster"]
+keywords = ["qrcode", "crawler", "campus", "recruitment", "hdu", "checkin", "poster"]
 classifiers = [
   "Programming Language :: Python :: 3",
   "License :: OSI Approved :: MIT License",

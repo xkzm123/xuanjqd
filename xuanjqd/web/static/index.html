@@ -3,230 +3,304 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>宣讲会签到码 · 设计器</title>
+<title>宣讲会签到码</title>
 <style>
   :root{
-    --bg:#f6f8fc; --card:#fff; --ink:#0f172a; --sub:#64748b; --line:#e5eaf3;
-    --accent:#1f6feb; --accent-soft:rgba(31,111,235,.10); --radius:16px;
+    --bg:#f5f7fb; --card:#fff; --ink:#0f172a; --sub:#64748b; --line:#e6eaf2;
+    --accent:#1f6feb; --accent-soft:rgba(31,111,235,.09); --ok:#0f9d58; --radius:16px;
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
     -webkit-font-smoothing:antialiased}
-  header{height:64px;display:flex;align-items:center;gap:12px;padding:0 28px;
-    background:rgba(255,255,255,.82);backdrop-filter:blur(12px);
-    border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
-  .mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#0b2f6b,#1f6feb);
+  header{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.88);
+    backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .bar{max-width:1240px;margin:0 auto;padding:0 28px;height:64px;display:flex;align-items:center;gap:12px}
+  .mark{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#0b2f6b,#1f6feb);
     display:grid;place-items:center;color:#fff;font-weight:700;font-size:15px}
-  header h1{font-size:15px;margin:0;font-weight:600;letter-spacing:.01em}
-  header .ver{font-size:11.5px;color:var(--sub);border:1px solid var(--line);
-    padding:2px 7px;border-radius:999px;background:#fff}
-  header .spacer{flex:1}
-  header a{font-size:13px;color:var(--sub);text-decoration:none}
-  header a:hover{color:var(--accent)}
-
-  .layout{display:grid;grid-template-columns:360px 1fr;gap:24px;
-    max-width:1240px;margin:0 auto;padding:26px 28px 60px;align-items:start}
-  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-    padding:20px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
-  .panel h2{font-size:13px;margin:0 0 16px;color:var(--sub);font-weight:600;
-    letter-spacing:.08em;text-transform:uppercase}
-  .field{margin-bottom:14px}
-  .field label{display:block;font-size:12.5px;color:var(--sub);margin-bottom:6px}
-  input,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 12px;
-    font-size:13.5px;color:var(--ink);background:#fff;outline:none;transition:.15s;font-family:inherit}
-  input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .switch{display:flex;align-items:center;justify-content:space-between;
-    padding:9px 0;font-size:13.5px;border-top:1px dashed var(--line)}
-  .switch:first-of-type{border-top:0}
-  .switch input{width:auto}
-  .tog{position:relative;width:38px;height:22px;border-radius:999px;background:#d7deea;
-    transition:.2s;flex:0 0 auto;cursor:pointer}
-  .tog::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;
-    border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
-  .tog.on{background:var(--accent)}
-  .tog.on::after{left:19px}
-  .swatches{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
-  .sw{border:1px solid var(--line);border-radius:11px;padding:8px;cursor:pointer;background:#fff;
-    display:flex;align-items:center;gap:7px;font-size:12px;color:var(--sub);transition:.15s}
-  .sw:hover{border-color:#c7d5ea;transform:translateY(-1px)}
-  .sw.on{border-color:var(--accent);background:var(--accent-soft);color:var(--ink)}
-  .dot{width:14px;height:14px;border-radius:5px;flex:0 0 auto}
-
-  .preview{position:sticky;top:88px}
-  .stage{background:
-      radial-gradient(circle at 20% 10%,rgba(31,111,235,.06),transparent 45%),
-      linear-gradient(180deg,#fff,#f8fafe);
-    border:1px solid var(--line);border-radius:var(--radius);
-    min-height:520px;display:grid;place-items:center;padding:32px;position:relative;overflow:hidden}
-  .stage img{max-width:100%;max-height:620px;border-radius:12px;
-    box-shadow:0 18px 48px rgba(15,23,42,.14);transition:opacity .18s}
-  .stage img.loading{opacity:.35}
-  .badge{position:absolute;left:16px;top:14px;font-size:11.5px;color:var(--sub);
-    background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px 10px}
-  .bar{display:flex;gap:10px;margin-top:14px}
-  .btn{flex:1;border:0;border-radius:11px;padding:11px 16px;font-size:13.5px;font-weight:600;
-    cursor:pointer;background:var(--accent);color:#fff;transition:.15s}
-  .btn:hover{filter:brightness(1.06)}
+  .bar h1{font-size:15.5px;margin:0;font-weight:650;letter-spacing:.01em}
+  .meta{font-size:12px;color:var(--sub)}
+  .meta b{color:var(--ink);font-weight:600}
+  .spacer{flex:1}
+  .btn{border:0;border-radius:11px;padding:9px 15px;font-size:13.5px;font-weight:600;
+    cursor:pointer;background:var(--accent);color:#fff;transition:.15s;font-family:inherit}
+  .btn:hover{filter:brightness(1.07)}
+  .btn:disabled{opacity:.5;cursor:not-allowed;filter:none}
   .btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line);font-weight:500}
-  .url{margin-top:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;
-    color:var(--sub);background:#f8fafc;border:1px solid var(--line);border-radius:10px;
-    padding:9px 11px;word-break:break-all;line-height:1.6}
-  .hint{font-size:12px;color:var(--sub);margin-top:10px;line-height:1.6}
-  @media (max-width:960px){.layout{grid-template-columns:1fr}.preview{position:static}}
+  .btn.ghost:hover{border-color:#c8d4e8;background:#fbfcfe}
+  .btn.sm{padding:6px 11px;font-size:12.5px;border-radius:9px}
+
+  .days{max-width:1240px;margin:0 auto;padding:16px 28px 4px;display:flex;gap:8px;
+    overflow-x:auto;scrollbar-width:none}
+  .days::-webkit-scrollbar{display:none}
+  .chip{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:999px;
+    padding:7px 14px;font-size:13px;cursor:pointer;color:var(--sub);transition:.15s;font-family:inherit}
+  .chip:hover{border-color:#c8d4e8;color:var(--ink)}
+  .chip[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .chip small{opacity:.6;margin-left:5px}
+
+  main{max-width:1240px;margin:0 auto;padding:14px 28px 120px;
+    display:grid;grid-template-columns:1fr 372px;gap:24px;align-items:start}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:0 1px 2px rgba(15,23,42,.04)}
+  .list{padding:6px}
+  .row{display:flex;gap:14px;align-items:center;padding:14px 16px;border-radius:12px;
+    transition:.13s;cursor:pointer}
+  .row:hover{background:#f8fafd}
+  .row+.row{border-top:1px solid #f1f4f9}
+  .row input{width:17px;height:17px;accent-color:var(--accent);cursor:pointer;flex:0 0 auto}
+  .when{flex:0 0 82px;text-align:center;border-right:1px solid var(--line);padding-right:10px}
+  .when .t{font-size:17px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+  .when .d{font-size:11.5px;color:var(--sub);margin-top:2px}
+  .who{flex:1;min-width:0}
+  .who h3{margin:0;font-size:14.5px;font-weight:600;line-height:1.4;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .who p{margin:4px 0 0;font-size:12.5px;color:var(--sub);display:flex;gap:10px;flex-wrap:wrap}
+  .tag{font-size:11px;padding:2px 7px;border-radius:6px;background:var(--accent-soft);color:var(--accent)}
+  .tag.new{background:rgba(15,157,88,.10);color:var(--ok)}
+  .empty{padding:56px 20px;text-align:center;color:var(--sub);font-size:13.5px;line-height:2}
+
+  aside{position:sticky;top:84px;display:flex;flex-direction:column;gap:16px}
+  .box{padding:18px}
+  .box h2{margin:0 0 14px;font-size:12.5px;color:var(--sub);font-weight:650;
+    letter-spacing:.08em;text-transform:uppercase}
+  .count{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1}
+  .count small{font-size:13px;font-weight:500;color:var(--sub);margin-left:6px;letter-spacing:0}
+  .picked{margin:12px 0 16px;font-size:12.5px;color:var(--sub);line-height:1.9;
+    max-height:110px;overflow:auto}
+  .picked div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .divider{height:1px;background:var(--line);margin:18px 0}
+  .range{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 12px}
+  .range label{font-size:11.5px;color:var(--sub);display:block;margin-bottom:5px}
+  .range input{width:100%;border:1px solid var(--line);border-radius:9px;padding:8px 10px;
+    font-size:13px;font-family:inherit;outline:none;color:var(--ink);background:#fff}
+  .range input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .result .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+  .result img{width:100%;border:1px solid var(--line);border-radius:8px;display:block;cursor:zoom-in}
+  .ok{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ok);margin-bottom:12px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+  .hint{font-size:11.5px;color:var(--sub);line-height:1.7;margin-top:10px}
+  .modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;
+    align-items:center;justify-content:center;padding:24px;z-index:60;backdrop-filter:blur(3px)}
+  .modal.on{display:flex}
+  .modal .inner{background:#fff;border-radius:20px;padding:18px;max-width:520px;width:100%;
+    max-height:92vh;overflow:auto}
+  .modal img{width:100%;border-radius:12px;border:1px solid var(--line)}
+  .modal .cap{font-size:13px;color:var(--sub);margin-top:12px;line-height:1.7}
+  .modal .cap b{color:var(--ink)}
+  .toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,20px);background:var(--ink);
+    color:#fff;font-size:13px;padding:10px 18px;border-radius:11px;opacity:0;
+    transition:.22s;pointer-events:none;z-index:80}
+  .toast.on{opacity:1;transform:translate(-50%,0)}
+  @media (max-width:1000px){main{grid-template-columns:1fr}aside{position:static}}
 </style>
 </head>
 <body>
 <header>
-  <div class="mark">签</div>
-  <h1>宣讲会签到码 · 设计器</h1>
-  <div class="spacer"></div>
-  <a href="/api/docs" target="_blank">API</a>
+  <div class="bar">
+    <div class="mark">签</div>
+    <div>
+      <h1>宣讲会签到码</h1>
+      <div class="meta">数据来自 <b>job.hdu.edu.cn</b> · 更新于 <b id="fetched">—</b></div>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn ghost sm" id="refresh">重新抓取</button>
+  </div>
 </header>
 
-<div class="layout">
-  <div>
-    <div class="panel">
-      <h2>内容</h2>
-      <div class="field"><label>公司名称</label>
-        <input id="company" value="浙江明贺钢管有限公司"></div>
-      <div class="field"><label>宣讲会标题</label>
-        <input id="title" value="2026 届校园宣讲会 · 机械/材料"></div>
-      <div class="row">
-        <div class="field"><label>日期</label><input id="date" type="date"></div>
-        <div class="field"><label>时间</label><input id="time" type="time" value="14:00"></div>
-      </div>
-      <div class="field"><label>地点</label><input id="location" value="6 教中 325"></div>
-      <div class="field"><label>宣讲会编号 id</label><input id="id" type="number" value="136991"></div>
-    </div>
+<div class="days" id="days"></div>
 
-    <div class="panel" style="margin-top:16px">
-      <h2>样式</h2>
-      <div class="field"><label>配色</label>
-        <div class="swatches" id="swatches"></div>
-      </div>
-      <div class="row">
-        <div class="field"><label>模块形状</label>
-          <select id="module">
-            <option value="rounded" selected>圆角（默认）</option>
-            <option value="classy">优雅圆角</option>
-            <option value="square">经典方块</option>
-            <option value="dot">圆点</option>
-            <option value="diamond">菱形</option>
-          </select></div>
-        <div class="field"><label>定位点</label>
-          <select id="eye">
-            <option value="rounded" selected>圆角</option>
-            <option value="circle">圆形</option>
-            <option value="square">方形</option>
-          </select></div>
-      </div>
-      <div class="switch"><span>渐变填充</span><div class="tog" id="t-gradient"></div></div>
-      <div class="switch"><span>中心 logo</span><div class="tog" id="t-logo"></div></div>
-      <div class="switch on"><span>信息卡片</span><div class="tog on" id="t-card"></div></div>
-    </div>
-  </div>
+<main>
+  <section class="panel list" id="list">
+    <div class="empty">正在抓取宣讲会…</div>
+  </section>
 
-  <div class="preview">
-    <div class="stage">
-      <span class="badge" id="badge">实时预览</span>
-      <img id="img" alt="签到码预览" src="/api/preview.png">
-    </div>
-    <div class="bar">
-      <button class="btn" id="download">下载 PNG</button>
-      <button class="btn ghost" id="copy">复制签到链接</button>
-    </div>
-    <div class="url" id="url"></div>
-    <div class="hint">改任何参数都会自动重绘。生成的图片可直接打印，二维码内容与平台签到链接完全一致。</div>
+  <aside>
+    <section class="panel box">
+      <h2>已选</h2>
+      <div class="count"><span id="selCount">0</span><small>场</small></div>
+      <div class="picked" id="picked"><span style="opacity:.6">勾选左边的宣讲会</span></div>
+      <button class="btn" style="width:100%" id="genSelected" disabled>生成签到码</button>
+
+      <div class="divider"></div>
+
+      <h2>任意生成</h2>
+      <div class="range">
+        <div><label>起始编号</label><input id="startId" value="137324"></div>
+        <div><label>数量</label><input id="count" value="5" type="number" min="1" max="60"></div>
+      </div>
+      <button class="btn ghost" style="width:100%" id="genRange">按编号生成</button>
+      <div class="hint">不依赖列表，直接按编号连续生成，适合补漏。</div>
+    </section>
+
+    <section class="panel box result" id="result" style="display:none">
+      <h2>生成结果</h2>
+      <div class="ok"><span class="dot"></span><span id="resultMsg"></span></div>
+      <div class="grid" id="thumbs"></div>
+      <div style="display:flex;gap:8px">
+        <a class="btn" style="flex:1;text-align:center;text-decoration:none;line-height:1.6"
+           id="openGallery" target="_blank">打开网页画廊</a>
+        <a class="btn ghost" style="flex:1;text-align:center;text-decoration:none;line-height:1.6"
+           href="/api/zip" id="downloadZip">下载 zip</a>
+      </div>
+    </section>
+  </aside>
+</main>
+
+<div class="modal" id="modal">
+  <div class="inner">
+    <img id="mimg" alt="签到码">
+    <div class="cap" id="mcap"></div>
   </div>
 </div>
+<div class="toast" id="toast"></div>
 
 <script>
 const $ = id => document.getElementById(id);
-const state = { theme:'hdu', gradient:false, logo:false, card:true };
-let timer = null;
+const state = { talks: [], days: [], day: '', selected: new Set() };
 
-async function loadThemes(){
-  const res = await fetch('/api/themes');
-  const list = await res.json();
-  $('swatches').innerHTML = list.map(t =>
-    `<div class="sw ${t.key==='hdu'?'on':''}" data-k="${t.key}">
-       <span class="dot" style="background:linear-gradient(135deg,${t.dark},${t.dark2})"></span>${t.name}
-     </div>`).join('');
-  $('swatches').addEventListener('click', e => {
-    const el = e.target.closest('.sw'); if(!el) return;
-    state.theme = el.dataset.k;
-    [...$('swatches').children].forEach(c => c.classList.toggle('on', c===el));
-    render();
-  });
+function toast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('on');
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), 1800);
 }
 
-function toggle(el, key){
-  el.addEventListener('click', () => {
-    state[key] = !state[key];
-    el.classList.toggle('on', state[key]);
-    render();
-  });
+async function load(refresh){
+  $('list').innerHTML = '<div class="empty">正在抓取宣讲会…</div>';
+  try{
+    const res = await fetch('/api/talks' + (refresh ? '?refresh=1' : ''));
+    const data = await res.json();
+    state.talks = data.talks || [];
+    state.days = data.days || [];
+    $('fetched').textContent = data.fetched_at || '—';
+    if (data.error) toast(data.error);
+    if (!state.talks.length){
+      $('list').innerHTML = '<div class="empty">没有抓到宣讲会<br>点右上角「重新抓取」试试</div>';
+    }
+    if (state.talks.length){
+      $('startId').value = Math.max(...state.talks.map(t => t.id)) + 1;
+    }
+    applyHash(); renderDays(); render();
+  }catch(e){
+    $('list').innerHTML = '<div class="empty">抓取失败：' + e + '</div>';
+  }
 }
 
-function query(){
-  const p = new URLSearchParams({
-    id: $('id').value || '136991',
-    company: $('company').value,
-    title: $('title').value,
-    date: $('date').value,
-    time: $('time').value,
-    location: $('location').value,
-    theme: state.theme,
-    module: $('module').value,
-    eye: $('eye').value,
-    gradient: state.gradient,
-    logo: state.logo,
-    card: state.card,
-  });
-  return p.toString();
+function renderDays(){
+  let html = `<button class="chip" data-d="" aria-pressed="${state.day === ''}">全部<small>${state.talks.length}</small></button>`;
+  html += state.days.map(d => {
+    const p = d.date.split('-');
+    const w = '日一二三四五六'[new Date(d.date + 'T00:00:00').getDay()];
+    return `<button class="chip" data-d="${d.date}" aria-pressed="${state.day === d.date}">${p[1]}-${p[2]} 周${w}<small>${d.count}</small></button>`;
+  }).join('');
+  $('days').innerHTML = html;
+}
+
+function filtered(){
+  return state.talks.filter(t => !state.day || t.date === state.day);
 }
 
 function render(){
-  clearTimeout(timer);
-  timer = setTimeout(() => {
-    const img = $('img');
-    img.classList.add('loading');
-    img.onload = () => img.classList.remove('loading');
-    img.src = '/api/preview.png?' + query() + '&t=' + Date.now();
-    fetch('/api/link?id=' + ($('id').value || '136991'))
-      .then(r => r.json()).then(d => { $('url').textContent = d.url; });
-  }, 180);
+  const rows = filtered();
+  if (!rows.length){ $('list').innerHTML = '<div class="empty">这一天没有宣讲会</div>'; return; }
+  $('list').innerHTML = rows.map(t => `
+    <label class="row">
+      <input type="checkbox" data-id="${t.id}" ${state.selected.has(t.id) ? 'checked' : ''}>
+      <div class="when"><div class="t">${t.time || '--:--'}</div><div class="d">${t.date_label}</div></div>
+      <div class="who">
+        <h3>${t.company}</h3>
+        <p>
+          <span>${t.location || '地点待定'}</span>
+          <span class="tag">#${t.id}</span>
+          ${t.status ? `<span class="tag new">${t.status}</span>` : ''}
+        </p>
+      </div>
+      <button class="btn ghost sm" data-prev="${t.id}">预览</button>
+    </label>`).join('');
+  syncPanel();
 }
 
-$('download').addEventListener('click', () => {
-  const a = document.createElement('a');
-  a.href = '/api/preview.png?' + query();
-  a.download = `signin-${$('id').value || 'code'}.png`;
-  a.click();
+function applyHash(){
+  const m = (location.hash || '').match(/ids=([\d,]+)/);
+  if (!m) return;
+  m[1].split(',').forEach(x => { const id = Number(x); if (id) state.selected.add(id); });
+  syncPanel();
+}
+
+function syncPanel(){
+  $('selCount').textContent = state.selected.size;
+  $('genSelected').disabled = state.selected.size === 0;
+  const box = $('picked');
+  if (!state.selected.size){ box.innerHTML = '<span style="opacity:.6">勾选左边的宣讲会</span>'; return; }
+  box.innerHTML = [...state.selected].map(id => {
+    const t = state.talks.find(x => x.id === id);
+    return `<div>${t ? t.company : '#' + id}</div>`;
+  }).join('');
+}
+
+$('days').addEventListener('click', e => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  state.day = b.dataset.d;
+  [...$('days').children].forEach(c => c.setAttribute('aria-pressed', String(c === b)));
+  render();
 });
 
-$('copy').addEventListener('click', async () => {
-  try { await navigator.clipboard.writeText($('url').textContent); $('copy').textContent='已复制'; }
-  catch(e){ $('copy').textContent='复制失败'; }
-  setTimeout(()=>{ $('copy').textContent='复制签到链接'; }, 1400);
+$('list').addEventListener('change', e => {
+  const cb = e.target.closest('input[type=checkbox]'); if (!cb) return;
+  const id = Number(cb.dataset.id);
+  cb.checked ? state.selected.add(id) : state.selected.delete(id);
+  syncPanel();
 });
 
-document.querySelectorAll('input,select').forEach(el => {
-  el.addEventListener('input', render);
-  el.addEventListener('change', render);
+$('list').addEventListener('click', e => {
+  const b = e.target.closest('[data-prev]'); if (!b) return;
+  e.preventDefault();
+  const id = Number(b.dataset.prev);
+  const t = state.talks.find(x => x.id === id) || {};
+  $('mimg').src = `/api/preview.png?id=${id}&t=${Date.now()}`;
+  $('mcap').innerHTML = `<b>${t.company || '#' + id}</b><br>${t.date_label || ''} ${t.time || ''} · ${t.location || '地点待定'}<br>#${id}`;
+  $('modal').classList.add('on');
 });
-toggle($('t-gradient'), 'gradient');
-toggle($('t-logo'), 'logo');
-toggle($('t-card'), 'card');
 
-const today = new Date();
-const iso = new Date(today.getTime() + 86400000).toISOString().slice(0,10);
-$('date').value = iso;
+$('modal').onclick = e => { if (e.target.id === 'modal') $('modal').classList.remove('on'); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('modal').classList.remove('on'); });
 
-loadThemes();
-render();
+$('refresh').onclick = () => { state.selected.clear(); load(true); toast('已重新抓取'); };
+
+async function generate(body, label){
+  const btns = document.querySelectorAll('button');
+  btns.forEach(b => b.disabled = true);
+  toast('正在生成…');
+  try{
+    const res = await fetch('/api/generate', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    });
+    if (!res.ok){ const err = await res.json().catch(() => ({})); throw new Error(err.detail || res.status); }
+    const data = await res.json();
+    $('result').style.display = '';
+    $('resultMsg').textContent = `已生成 ${data.count} 场 · 自检 ${data.verified}/${data.count}`;
+    const qr = (data.files || []).filter(f => f.name.startsWith('qr/')).slice(0, 6);
+    $('thumbs').innerHTML = qr.map(f =>
+      `<img src="/api/file?p=${encodeURIComponent(f.name)}&t=${Date.now()}" alt="">`).join('');
+    $('openGallery').href = '/api/file?p=index.html';
+    $('result').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+    toast(label);
+  }catch(e){
+    toast('生成失败：' + e.message);
+  }finally{
+    btns.forEach(b => b.disabled = false);
+    syncPanel();
+  }
+}
+
+$('genSelected').onclick = () => generate({ids: [...state.selected]}, '生成完成');
+$('genRange').onclick = () => {
+  const start = Number($('startId').value), count = Number($('count').value);
+  if (!start || !count) return toast('填一下起始编号和数量');
+  generate({start, count}, `已按编号生成 ${count} 场`);
+};
+
+load(false);
 </script>
 </body>
 </html>

@@ -19,10 +19,11 @@ from rich.text import Text
 from rich.tree import Tree
 
 from . import __version__
+from . import crawl as crawler
 from .codec import signin_url
 from .gallery import write_gallery
 from .layout import save_pages, save_pdf, sheet, wall
-from .models import Talk, demo_talks, save_csv, save_json, sort_talks
+from .models import Talk, demo_talks, from_range, save_csv, save_json, sort_talks
 from .qr import MODULE_STYLES, EYE_STYLES, QRStyle, ascii_art, render, save_png, to_svg
 from .sources import merge_meta, probe, resolve
 from .theme import THEMES, get_theme, theme_names
@@ -61,14 +62,16 @@ def _summary_table(talks: list[Talk]) -> Table:
     table = Table(box=None, pad_edge=False, show_header=True, header_style="bold")
     table.add_column("编号", style="cyan", no_wrap=True)
     table.add_column("时间", no_wrap=True)
-    table.add_column("公司 / 宣讲会", overflow="ellipsis", max_width=42)
+    table.add_column("公司", overflow="ellipsis", max_width=38)
     table.add_column("地点", overflow="ellipsis", max_width=18)
+    table.add_column("", no_wrap=True)
     for t in talks:
         table.add_row(
             f"#{t.id}",
             f"{t.date_label} {t.time_label}".strip() or "待定",
             t.display_name,
             t.location or "—",
+            f"[green]{t.status}[/green]" if t.status else "",
         )
     return table
 
@@ -186,12 +189,80 @@ def _render_all(
 
 
 @app.command()
+def fetch(
+    cookie: str = typer.Option("", "--cookie", help="登录后的 Cookie（可选，能抓到完整列表）"),
+    html: Path = typer.Option(None, "--html", help="解析本地保存的页面，不联网"),
+    json_out: bool = typer.Option(False, "--json", help="以 JSON 输出"),
+) -> None:
+    """从学校就业网抓取宣讲会列表（写入 data/talks.json）。"""
+    _utf8()
+    try:
+        with console.status("[cyan]正在抓取 job.hdu.edu.cn ...[/cyan]", spinner="dots"):
+            text = html.read_text(encoding="utf-8", errors="replace") if html else None
+            talks = crawler.crawl(cookie=cookie, html=text)
+    except Exception as exc:  # noqa: BLE001
+        console.print(f"[red]抓取失败：{exc}[/red]")
+        raise typer.Exit(1)
+
+    crawler.save_cache(talks)
+
+    if json_out:
+        print(json.dumps([t.to_json() for t in talks], ensure_ascii=False, indent=2))
+        return
+    if not talks:
+        console.print("[yellow]页面里没解析到宣讲会，站点结构可能变了[/yellow]")
+        return
+
+    body = f"[bold]抓到 {len(talks)} 场宣讲会[/bold]" + "\n" + "[dim]来源 job.hdu.edu.cn · 已写入 data/talks.json[/dim]"
+    console.print(Panel.fit(body, border_style="cyan", padding=(0, 2)))
+    console.print(_summary_table(talks))
+    console.print("[dim]下一步：xuanjqd preview 打开界面挑选，或 xuanjqd gen --date 11-10[/dim]")
+
+
+@app.command(name="list")
+def list_(
+    date: str = typer.Option("", "--date", help="只看某一天，如 11-10"),
+    json_out: bool = typer.Option(False, "--json"),
+) -> None:
+    """查看已抓取的宣讲会（按天分组）。"""
+    _utf8()
+    talks, when = crawler.load_cache()
+    if not talks:
+        console.print("[yellow]还没有数据，先运行 xuanjqd fetch[/yellow]")
+        raise typer.Exit(1)
+
+    if date:
+        key = date.replace("-", "")[-4:]
+        talks = [t for t in talks if t.start_at and t.start_at.strftime("%m%d") == key]
+
+    if json_out:
+        print(json.dumps([t.to_json() for t in talks], ensure_ascii=False, indent=2))
+        return
+
+    if when:
+        console.print(f"[dim]数据时间：{when:%Y-%m-%d %H:%M}[/dim]")
+    groups: dict[str, list[Talk]] = {}
+    for t in talks:
+        key = t.date_label if t.start_at else "待定"
+        groups.setdefault(key, []).append(t)
+    for day, items in groups.items():
+        console.print()
+        console.print(f"[bold]{day}[/bold] [dim]{len(items)} 场[/dim]")
+        console.print(_summary_table(items))
+
+
+@app.command()
 def gen(
-    start: int = typer.Option(136991, "--start", "-s", help="起始宣讲会 id"),
-    count: int = typer.Option(6, "--count", "-n", help="从 start 往后生成多少个"),
+    start: int = typer.Option(0, "--start", "-s", help="起始宣讲会 id（配合 --count 任意生成）"),
+    count: int = typer.Option(0, "--count", "-n", help="从 start 往后生成多少个"),
     ids: str = typer.Option("", "--ids", help="指定 id，逗号分隔，也可直接粘详情页链接"),
+    date: str = typer.Option("", "--date", help="只生成某一天，如 11-10"),
+    today: bool = typer.Option(False, "--today", help="只生成今天的"),
+    all_: bool = typer.Option(False, "--all", help="生成抓到的全部（默认行为）"),
     csv: Path = typer.Option(None, "--csv", help="从 CSV 读取（company/date/location 等）"),
     demo: bool = typer.Option(False, "--demo", help="用演示数据跑一遍（不访问任何真实接口）"),
+    cookie: str = typer.Option("", "--cookie", help="登录后的 Cookie（可选）"),
+    refresh: bool = typer.Option(False, "--refresh", help="强制重新抓取"),
     out: Path = typer.Option(Path("out"), "--out", "-o", help="输出目录"),
     theme: str = typer.Option("hdu", "--theme", "-t", help=f"配色：{', '.join(theme_names())}"),
     module: str = typer.Option("rounded", "--module", help=f"模块形状：{', '.join(MODULE_STYLES)}"),
@@ -216,14 +287,32 @@ def gen(
     """批量生成签到码：PNG 卡片 + A4 拼版 + 长图 + 网页画廊 + 清单。"""
     _utf8()
     if csv:
-        # CSV 既是"清单"也是"元信息源"：只给 --ids 时才用 CSV 的元信息去补全
-        meta = resolve(csv_path=csv)
-        talks = merge_meta(meta, resolve(ids=ids)) if ids else meta
+        talks = resolve(csv_path=csv)
+    elif ids:
+        talks = resolve(ids=ids)
+    elif start and count:
+        talks = from_range(start, count)
+    elif demo:
+        talks = demo_talks()
     else:
-        talks = resolve(start=start, count=count, ids=ids, demo=demo)
+        cached, _when = crawler.load_cache()
+        if refresh or not cached:
+            with console.status("[cyan]正在抓取宣讲会...[/cyan]", spinner="dots"):
+                try:
+                    cached = crawler.crawl(cookie=cookie)
+                    crawler.save_cache(cached)
+                except Exception as exc:  # noqa: BLE001
+                    console.print(f"[red]抓取失败：{exc}[/red]")
+                    raise typer.Exit(1)
+        talks = cached
+        if date:
+            key = date.replace("-", "")[-4:]
+            talks = [t for t in talks if t.start_at and t.start_at.strftime("%m%d") == key]
+        elif today:
+            talks = [t for t in talks if t.start_at and t.start_at.date() == datetime.now().date()]
 
     if not talks:
-        console.print("[red]没有可生成的条目，检查 --start/--count/--ids/--csv[/red]")
+        console.print("[red]没有可生成的条目：先 xuanjqd fetch，或用 --ids / --start N --count N[/red]")
         raise typer.Exit(2)
 
     talks = sort_talks(talks)
@@ -351,25 +440,33 @@ def preview(
     host: str = typer.Option("127.0.0.1", "--host"),
     open_browser: bool = typer.Option(True, "--open/--no-open"),
 ) -> None:
-    """启动本地可视化设计器（改样式 → 实时预览 → 一键下载）。"""
+    """打开本地界面：抓取宣讲会 → 按天挑选 → 生成签到码。"""
     _utf8()
     try:
         import uvicorn  # noqa: F401
     except ImportError:
-        console.print("[red]缺少依赖：pip install 'xuanjqd[web]'[/red]")
+        console.print("[red]缺少依赖：pip install fastapi uvicorn[/red]")
         raise typer.Exit(2)
 
+    from . import browser as browser_util
     from .web.app import create_app
 
-    console.print(Panel.fit(
-        f"[bold]设计器已启动[/bold]\nhttp://{host}:{port}\n[dim]Ctrl+C 退出[/dim]",
-        border_style="green",
-    ))
+    port = browser_util.free_port(host, port)
+    url = f"http://{host}:{port}"
+
+    body = "[bold]界面已启动[/bold]" + "\n" + url + "\n" + "[dim]关闭窗口或按 Ctrl+C 停止[/dim]"
+    console.print(Panel.fit(body, border_style="green"))
+
     if open_browser:
         import threading
-        import webbrowser
 
-        threading.Timer(1.2, lambda: webbrowser.open(f"http://{host}:{port}")).start()
+        def _open() -> None:
+            how = browser_util.open_url(url)
+            if how == "manual":
+                console.print(f"[yellow]没能自动打开浏览器，地址已复制到剪贴板：{url}[/yellow]")
+
+        threading.Timer(1.0, _open).start()
+
     uvicorn.run(create_app(), host=host, port=port, log_level="warning")
 
 
