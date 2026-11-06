@@ -11,7 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from PIL import Image, ImageDraw  # noqa: E402
+from PIL import Image, ImageDraw, ImageFont  # noqa: E402
 
 from xuanjqd.models import Talk, demo_talks, sort_talks  # noqa: E402
 from xuanjqd.qr import QRStyle, _font, render  # noqa: E402
@@ -37,9 +37,6 @@ def _f(path: str, size: int):
         return _font(size)
 
 
-from PIL import ImageFont  # noqa: E402
-
-
 def _fonts(size: int, bold: bool = False):
     return _f(MONO_B if bold else MONO, size), _f(CJK_B if bold else CJK, size)
 
@@ -62,17 +59,34 @@ def draw_text(d, x, y, text, size, color, bold=False):
     return x
 
 
-def draw_segments(d, x, y, segs, size):
-    for text, color, bold in segs:
-        x = draw_text(d, x, y, text, size, color, bold)
-    return x
+def _label(draw, xy, text, size=22, color="#334155", bold=False):
+    draw_text(draw, xy[0], xy[1], text, size, color, bold)
+
+
+# ---------------------------------------------------------------- 图片加工
+
+
+def frame(img: Image.Image, radius: int = 16, border: str = "#dfe5ef") -> Image.Image:
+    """给截图加圆角 + 描边，README 里看起来整齐一点。"""
+    img = img.convert("RGB")
+    w, h = img.size
+    pad = 2
+    canvas = Image.new("RGBA", (w + pad * 2, h + pad * 2), (0, 0, 0, 0))
+    mask = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(mask).rounded_rectangle([0, 0, w - 1, h - 1], radius=radius, fill=255)
+    canvas.paste(img, (pad, pad), mask)
+    d = ImageDraw.Draw(canvas)
+    d.rounded_rectangle([pad, pad, w + pad - 1, h + pad - 1], radius=radius, outline=border, width=2)
+    return canvas
+
+
+def shot(src: Path, dst: Path, box: tuple[int, int, int, int]) -> Path:
+    img = Image.open(src).crop(box)
+    frame(img).save(dst, optimize=True)
+    return dst
 
 
 # ---------------------------------------------------------------- 素材
-
-
-def _label(draw, xy, text, size=22, color="#334155", bold=False):
-    draw_text(draw, xy[0], xy[1], text, size, color, bold)
 
 
 def style_wall() -> Path:
@@ -116,28 +130,6 @@ def style_wall() -> Path:
     return p
 
 
-def before_after() -> Path:
-    import qrcode
-
-    old = qrcode.make(TALKS[0].signin_url, box_size=10, border=4).convert("RGB")
-    old = old.resize((520, 520), Image.LANCZOS)
-    new = render(TALKS[0], "hdu", QRStyle(scale=11, gradient=True))
-    new = new.resize((int(new.width * 520 / new.height), 520), Image.LANCZOS)
-
-    pad, top = 40, 78
-    W = pad * 2 + old.width + 60 + new.width
-    H = top + 520 + pad
-    img = Image.new("RGB", (W, H), "#f6f8fc")
-    d = ImageDraw.Draw(img)
-    _label(d, (pad, 26), "v1 · 只有一张裸二维码", 24, "#64748b", bold=True)
-    _label(d, (pad + old.width + 60, 26), "v2 · 卡片 / 信息 / 主题 / 自检", 24, "#0f172a", bold=True)
-    img.paste(old, (pad, top))
-    img.paste(new, (pad + old.width + 60, top), new if new.mode == 'RGBA' else None)
-    p = OUT / "before-after.png"
-    img.save(p, optimize=True)
-    return p
-
-
 def terminal_png() -> Path:
     """手绘一张终端截图：rich 的 SVG 导出对中文对不齐，所以自己排版。"""
     W, H = 1180, 636
@@ -146,7 +138,6 @@ def terminal_png() -> Path:
     d = ImageDraw.Draw(img)
     d.rounded_rectangle([0, 0, W - 1, H - 1], radius=14, fill=bg)
 
-    # 标题栏
     d.rounded_rectangle([0, 0, W, 46], radius=14, fill=bar)
     d.rectangle([0, 32, W, 46], fill=bar)
     for i, c in enumerate(("#ff5f57", "#febc2e", "#28c840")):
@@ -156,16 +147,13 @@ def terminal_png() -> Path:
     x0, y = 34, 74
     size = 15
 
-    # 命令行
     x = draw_text(d, x0, y, "$ ", size, "#22c55e", True)
-    x = draw_text(d, x, y, "xuanjqd gen --start 136991 -n 8 --gradient --sheet", size, "#e6edf7")
+    draw_text(d, x, y, "xuanjqd gen --start 136991 -n 8 --gradient --sheet", size, "#e6edf7")
     y += 34
 
-    # 表格
-    cols = [(x0, "编号", "#8b93a7"), (x0 + 130, "时间", "#8b93a7"),
-            (x0 + 330, "公司 / 宣讲会", "#8b93a7"), (x0 + 780, "地点", "#8b93a7")]
-    for cx, name, color in cols:
-        draw_text(d, cx, y, name, size, color, True)
+    cols = [(x0, "编号"), (x0 + 130, "时间"), (x0 + 330, "公司 / 宣讲会"), (x0 + 780, "地点")]
+    for cx, name in cols:
+        draw_text(d, cx, y, name, size, "#8b93a7", True)
     y += 30
     d.line([x0, y - 8, W - x0, y - 8], fill="#242438", width=1)
 
@@ -193,8 +181,7 @@ def terminal_png() -> Path:
         ("扫码自检", "8/8", ""),
     ]
     for i, (name, count, path) in enumerate(tree):
-        last = i == len(tree) - 1
-        prefix = "└── " if last else "├── "
+        prefix = "└── " if i == len(tree) - 1 else "├── "
         x = draw_text(d, x0, y, prefix, size, "#3b4256")
         x = draw_text(d, x, y, name, size, "#c9d3e3")
         if count:
@@ -213,22 +200,75 @@ def terminal_png() -> Path:
     return p
 
 
-def crop_shot(src: Path, dst: Path, top: int = 110) -> Path | None:
-    if not src.exists():
-        return None
-    img = Image.open(src)
-    img.crop((0, top, img.width, img.height)).save(dst, optimize=True)
-    return dst
+def hero() -> Path:
+    """三张卡片拼一张横幅，README 顶部用。"""
+    from PIL import ImageFilter
+
+    cards = [render(TALKS[i], "hdu", QRStyle(scale=11, gradient=True)) for i in (0, 1, 4)]
+    tw, gap, top = 400, 34, 70
+    thumbs = []
+    for c in cards:
+        h = int(c.height * tw / c.width)
+        thumbs.append(c.resize((tw, h), Image.LANCZOS))
+
+    W = tw * 3 + gap * 2 + 160
+    H = max(t.height for t in thumbs) + top * 2 + 40
+    bg = Image.new("RGB", (W, H), "#f7f9fd")
+    d = ImageDraw.Draw(bg)
+    for y in range(H):
+        t = y / max(1, H - 1)
+        col = (int(247 - 8 * t), int(249 - 6 * t), int(253 - 4 * t))
+        d.line([(0, y), (W, y)], fill=col)
+
+    x = (W - (tw * 3 + gap * 2)) // 2
+    for t in thumbs:
+        shadow = Image.new("RGBA", (t.width + 80, t.height + 80), (0, 0, 0, 0))
+        ImageDraw.Draw(shadow).rounded_rectangle(
+            [40, 40, 40 + t.width, 40 + t.height], radius=18, fill=(15, 23, 42, 46)
+        )
+        shadow = shadow.filter(ImageFilter.GaussianBlur(16))
+        bg.paste(shadow, (x - 40, top - 30), shadow)
+        bg.paste(t, (x, top), t if t.mode == "RGBA" else None)
+        x += tw + gap
+
+    p = OUT / "hero.png"
+    bg.save(p, optimize=True)
+    return p
+
+
+def outputs() -> list[Path]:
+    """从 out/ 里取生成结果，做成 README 展示图。"""
+    made = []
+    card = Image.open(ROOT / "out" / "qr" / "136991.png")
+    card.save(OUT / "card.png", optimize=True)
+    made.append(OUT / "card.png")
+
+    s = Image.open(ROOT / "out" / "sheet" / "sheet-01.png")
+    s.resize((1000, int(s.height * 1000 / s.width)), Image.LANCZOS).save(OUT / "sheet.png", optimize=True)
+    made.append(OUT / "sheet.png")
+
+    w = Image.open(ROOT / "out" / "wall.png")
+    w.resize((620, int(w.height * 620 / w.width)), Image.LANCZOS).save(OUT / "wall.png", optimize=True)
+    made.append(OUT / "wall.png")
+    return made
+
+
+def screenshots() -> list[Path]:
+    made = []
+    gal = ROOT / "_shot_gallery.png"
+    if gal.exists():
+        made.append(shot(gal, OUT / "gallery.png", (0, 110, 1912, 900)))
+    des = ROOT / "_shot_designer.png"
+    if des.exists():
+        made.append(shot(des, OUT / "designer.png", (0, 110, 1912, 900)))
+    return made
 
 
 def main() -> None:
-    for fn in (style_wall, before_after, terminal_png):
-        print("→", fn().relative_to(ROOT))
-    for name in ("gallery", "designer"):
-        src = ROOT / f"_shot_{name}.png"
-        out = crop_shot(src, OUT / f"{name}.png")
-        if out:
-            print("→", out.relative_to(ROOT))
+    for fn in (style_wall, terminal_png, hero):
+        print("->", fn().relative_to(ROOT))
+    for p in outputs() + screenshots():
+        print("->", p.relative_to(ROOT))
 
 
 if __name__ == "__main__":

@@ -10,6 +10,8 @@ venv/
 .ruff_cache/
 out/
 dist-out/
+pytest-of-*/
+_shot_*.png
 *.zip
 .DS_Store
 Thumbs.db

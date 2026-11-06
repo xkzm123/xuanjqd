@@ -1,0 +1,12 @@
+# 核心
+segno>=1.5
+pillow>=9.0
+rich>=13.0
+typer>=0.9
+
+# 可视化设计器（start.bat 会用到）
+fastapi>=0.110
+uvicorn>=0.27
+
+# 扫码自检（可选，装了才生效）
+zxing-cpp>=2.2

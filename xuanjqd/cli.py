@@ -23,7 +23,7 @@ from .codec import signin_url
 from .gallery import write_gallery
 from .layout import save_pages, save_pdf, sheet, wall
 from .models import Talk, demo_talks, save_csv, save_json, sort_talks
-from .qr import MODULE_STYLES, EYE_STYLES, QRStyle, ascii_art, classic_png, render, save_png, to_svg
+from .qr import MODULE_STYLES, EYE_STYLES, QRStyle, ascii_art, render, save_png, to_svg
 from .sources import merge_meta, probe, resolve
 from .theme import THEMES, get_theme, theme_names
 from .verify import HAS_ZXING, verify_payload
@@ -390,7 +390,7 @@ def doctor() -> None:
     import platform
 
     row("Python", sys.version_info >= (3, 9), platform.python_version())
-    for mod in ("segno", "PIL", "rich", "typer", "qrcode"):
+    for mod in ("segno", "PIL", "rich", "typer"):
         try:
             __import__(mod)
             row(mod, True)

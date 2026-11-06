@@ -468,16 +468,5 @@ def ascii_art(payload: str, *, quiet: int = 2, error: str = "h") -> list[str]:
     return lines
 
 
-def classic_png(talk: Talk, path: str | Path, box_size: int = 10) -> Path:
-    """老版本的朴素输出，保留一个 `--classic` 开关做对照。"""
-    import qrcode  # 延迟导入，核心路径不强依赖
-
-    img = qrcode.make(talk.signin_url, box_size=box_size, border=4)
-    path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    img.save(path)
-    return path
-
-
 def batch_render(talks: Iterable[Talk], theme, style: QRStyle, width: int | None = None) -> list[tuple[Talk, Image.Image]]:
     return [(t, render(t, theme, style, width=width)) for t in talks]
