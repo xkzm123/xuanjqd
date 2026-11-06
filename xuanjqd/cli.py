@@ -25,7 +25,7 @@ from .gallery import write_gallery
 from .layout import save_pages, save_pdf, sheet, wall
 from .models import Talk, demo_talks, from_range, save_csv, save_json, sort_talks
 from .qr import MODULE_STYLES, EYE_STYLES, QRStyle, ascii_art, render, save_png, to_svg
-from .sources import merge_meta, probe, resolve
+from .sources import probe, resolve
 from .theme import THEMES, get_theme, theme_names
 from .verify import HAS_ZXING, verify_payload
 

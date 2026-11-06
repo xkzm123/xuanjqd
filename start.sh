@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# macOS / Linux 一键启动：创建虚拟环境、装依赖、打开设计器
+# macOS / Linux 一键启动：检查依赖、启动界面
 set -e
 cd "$(dirname "$0")"
 
 echo
-echo "  宣讲会签到码工坊"
+echo "  宣讲会签到码"
 echo "  ------------------------------------------"
 echo
 
@@ -13,20 +13,16 @@ if ! command -v python3 >/dev/null 2>&1; then
   exit 1
 fi
 
-if [ ! -x ".venv/bin/python" ]; then
-  echo "  [1/3] 首次运行，创建虚拟环境..."
-  python3 -m venv .venv
-  echo "  [2/3] 安装依赖（第一次约 1-2 分钟）..."
-  .venv/bin/python -m pip install -q --upgrade pip
-  .venv/bin/python -m pip install -q -r requirements.txt
+if ! python3 -c "import fastapi, uvicorn, segno, PIL, rich, typer" >/dev/null 2>&1; then
+  echo "  [1/2] 缺少依赖，正在安装（只需要一次）..."
+  python3 -m pip install -r requirements.txt
 else
-  echo "  [1/3] 虚拟环境已就绪"
+  echo "  [1/2] 依赖已就绪"
 fi
 
-echo "  [2/3] 启动界面..."
-echo "  [3/3] 浏览器会自动打开，地址见下方（端口被占用会自动换）"
+echo "  [2/2] 启动界面，浏览器会自动打开..."
 echo
 echo "  Ctrl+C 停止服务。"
 echo
 
-exec .venv/bin/python -m xuanjqd preview
+exec python3 -m xuanjqd preview

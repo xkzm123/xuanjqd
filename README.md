@@ -39,7 +39,7 @@ http://job.hdu.edu.cn/teachin/qrcode?id={宣讲会编号}&id_code={md5(编号)}&
 
 **Windows：双击 `start.bat`**
 
-首次运行会自动建虚拟环境、装依赖（约 1–2 分钟），然后弹出界面：
+首次运行会自动装依赖（`pip install -r requirements.txt`，只需要一次），然后弹出界面：
 
 ```
 http://127.0.0.1:8848
