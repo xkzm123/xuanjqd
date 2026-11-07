@@ -31,13 +31,16 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install zxing-cpp
+          pip install pytest zxing-cpp
 
       - name: Run tests
-        run: pytest -q
+        run: python -m pytest -q
 
-      - name: Smoke test (demo build)
+      - name: Smoke test (offline demo)
         run: python -m xuanjqd demo -o out
+
+      - name: Smoke test (crawl parse, offline fixture)
+        run: python -c "from xuanjqd.crawl import parse; from pathlib import Path; import sys; html=Path('tests/fixtures/home.html').read_text(encoding='utf-8'); talks=parse(html); print(len(talks), 'talks'); sys.exit(0 if talks else 1)"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
